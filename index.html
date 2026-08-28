@@ -292,49 +292,74 @@
   </main>
 
   <script>
-    // Data Master Guru & WhatsApp SMK Sumbermas Sarana
-    const phoneBook = {
-      "JOKO SUSILO, S.Pd": "6285230950381",
-      "TITIN PUSPITA SARI HUTAPEA,S.Pd": "6282155138864",
-      "YANTI NURLIYANI, S.Pd": "6285654271885",
-      "GUSTAF PRIYADI, S.Pd": "6281257615088",
-      "RATIH PONIASARI, S.Pd": "6285787701561",
-      "MUHAMMAD CHOIRUL FAJAR, S.P": "6282158783400",
-      "YUSTIKA VENI SAPUTRI": "6282149879510",
-      "WAHYU ADIATAMA, S.P": "6285742221915",
-      "THIYO EKO JULYANTO, S.Pd": "6282252352472",
-      "MOH KURNIAWAN EFENDI. S.Pd": "6281554437802",
-      "RAMADHAN SETIYA GALUH PAMUJI, S.P": "6282154159105",
-      "SULIS, S.Pd": "6285821897452",
-      "HAFID AL HAMDA, S.Pd": "6282256598276",
-      "RUSMIATI, S.E": "6285651121418",
-      "SYIFA UNNISA, S.Pd": "6285895042030",
-      "RATNA, S.Pd": "6281270452172",
-      "MUHAMMAD THORIQ HIDAYAT, S.P": "6289505774201",
-      "ZALIARI NAFISA ARDHANI": "6285822093461",
-      "MOHAMAD SUTRISNO, ST": "6282250455464",
-      "MUHAMMAD ARRASY J ISKANDAR, S.Kom": "6282226182628",
-      "PEBRISHA SINTHANI DREY": "6285134615905",
-      "SASKIA SALSABILAH, S.P": "6281545332722",
-      "SOFIA, S.Kom": "6283106618348",
-      "UJANG MAHDARI": "6285845230859",
-      "AHMADI": "6285753591537",
-      "NOVITA SARI": "6282124431574",
-      "ZONNA PRIMAHADI PUTRI ANANDITA": "6289652859749"
+    // Data Master Lengkap Guru & Karyawan SMK Sumbermas Sarana
+    const employeeDatabase = {
+      "JOKO SUSILO, S.Pd": { phone: "6285230950381", nip: "198001012005011001", mapel: "Kepala Sekolah" },
+      "TITIN PUSPITA SARI HUTAPEA,S.Pd": { phone: "6282155138864", nip: "198502022010012002", mapel: "Bahasa Indonesia" },
+      "YANTI NURLIYANI, S.Pd": { phone: "6285654271885", nip: "198703032012012003", mapel: "Matematika" },
+      "GUSTAF PRIYADI, S.Pd": { phone: "6281257615088", nip: "198904042014011004", mapel: "PJOK" },
+      "RATIH PONIASARI, S.Pd": { phone: "6285787701561", nip: "199005052015012005", mapel: "Bahasa Inggris" },
+      "MUHAMMAD CHOIRUL FAJAR, S.P": { phone: "6282158783400", nip: "199106062016011006", mapel: "Produktif Pertanian" },
+      "YUSTIKA VENI SAPUTRI": { phone: "6282149879510", nip: "-", mapel: "Staf Tata Usaha" },
+      "WAHYU ADIATAMA, S.P": { phone: "6285742221915", nip: "199207072017011007", mapel: "Agribisnis" },
+      "THIYO EKO JULYANTO, S.Pd": { phone: "6282252352472", nip: "199308082018011008", mapel: "Sejarah" },
+      "MOH KURNIAWAN EFENDI. S.Pd": { phone: "6281554437802", nip: "199409092019011009", mapel: "PAI" },
+      "RAMADHAN SETIYA GALUH PAMUJI, S.P": { phone: "6282154159105", nip: "-", mapel: "Produktif Pertanian" },
+      "SULIS, S.Pd": { phone: "6285821897452", nip: "-", mapel: "Bimbingan Konseling" },
+      "HAFID AL HAMDA, S.Pd": { phone: "6282256598276", nip: "-", mapel: "Seni Budaya" },
+      "RUSMIATI, S.E": { phone: "6285651121418", nip: "-", mapel: "Bendahara / Karyawan" },
+      "SYIFA UNNISA, S.Pd": { phone: "6285895042030", nip: "-", mapel: "Bahasa Inggris" },
+      "RATNA, S.Pd": { phone: "6281270452172", nip: "-", mapel: "Informatika" },
+      "MUHAMMAD THORIQ HIDAYAT, S.P": { phone: "6289505774201", nip: "-", mapel: "Produktif Pertanian" },
+      "ZALIARI NAFISA ARDHANI": { phone: "6285822093461", nip: "-", mapel: "Staf TU" },
+      "MOHAMAD SUTRISNO, ST": { phone: "6282250455464", nip: "-", mapel: "Teknik Otomotif" },
+      "MUHAMMAD ARRASY J ISKANDAR, S.Kom": { phone: "6282226182628", nip: "-", mapel: "Produktif TKJ" },
+      "PEBRISHA SINTHANI DREY": { phone: "6285134615905", nip: "-", mapel: "Karyawan" },
+      "SASKIA SALSABILAH, S.P": { phone: "6281545332722", nip: "-", mapel: "Produktif Pertanian" },
+      "SOFIA, S.Kom": { phone: "6283106618348", nip: "-", mapel: "Produktif TKJ" },
+      "UJANG MAHDARI": { phone: "6285845230859", nip: "-", mapel: "Staf Keamanan" },
+      "AHMADI": { phone: "6285753591537", nip: "-", mapel: "Staf Kebersihan" },
+      "NOVITA SARI": { phone: "6282124431574", nip: "-", mapel: "Karyawan" },
+      "ZONNA PRIMAHADI PUTRI ANANDITA": { phone: "6289652859749", nip: "-", mapel: "Staf Perpustakaan" }
     };
 
     let leaveRequests = JSON.parse(localStorage.getItem('smk_izin_data')) || [];
     let currentFilteredData = [];
 
-    // Populate Dropdown
+    // Populate Dropdown & Event Listener Otomatis
     function initDropdowns() {
       const selectGuru = document.getElementById('nama-guru');
       const selectPengganti = document.getElementById('guru-pengganti');
+      const inputNip = document.getElementById('nip');
+      const inputMapel = document.getElementById('mata-pelajaran');
 
-      Object.keys(phoneBook).forEach(nama => {
+      // Masukkan opsi ke dropdown
+      Object.keys(employeeDatabase).forEach(nama => {
         selectGuru.add(new Option(nama, nama));
         selectPengganti.add(new Option(nama, nama));
       });
+
+      // Otomatis isi NIP dan Mapel saat Nama Guru dipilih
+      selectGuru.addEventListener('change', (e) => {
+        const selectedName = e.target.value;
+        const data = employeeDatabase[selectedName];
+        if (data) {
+          inputNip.value = data.nip || '-';
+          inputMapel.value = data.mapel || '-';
+        }
+      });
+    }
+
+    // Fungsi Kirim WhatsApp Fleksibel & Terproteksi
+    function sendWA(namaTujuan, pesan) {
+      const empData = employeeDatabase[namaTujuan];
+      if (empData && empData.phone) {
+        const encodedText = encodeURIComponent(pesan);
+        window.open(`https://wa.me/${empData.phone}?text=${encodedText}`, '_blank');
+      } else {
+        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan di sistem.`);
+      }
+    }
     }
 // Submit Form Pengajuan & Kirim WA Notifikasi dengan Encoded Data Payload
     document.getElementById('leave-form').addEventListener('submit', (e) => {
