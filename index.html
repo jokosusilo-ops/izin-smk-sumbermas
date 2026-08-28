@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Izin & Rekap Presensi - SMK Sumbermas Sarana</title>
+  <title>Sistem Approval Izin & Presensi - SMK Sumbermas Sarana</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -37,12 +37,12 @@
         <img src="kop.png" alt="Logo SMK Sumbermas Sarana" class="w-11 h-12 object-contain">
         <div>
           <h1 class="font-bold text-lg leading-tight text-[#123a5b]">SMK Sumbermas Sarana</h1>
-          <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Sistem Izin & Presensi Digital</p>
+          <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Sistem Approval Izin Realtime</p>
         </div>
       </div>
-      <div class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold border border-emerald-200">
+      <div id="header-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold border border-emerald-200">
         <i data-lucide="shield-check" class="w-4 h-4"></i>
-        <span>Approval WA & Dropdown System</span>
+        <span>Approval Mode</span>
       </div>
     </div>
   </header>
@@ -62,10 +62,10 @@
 
   <main class="max-w-7xl mx-auto px-5 py-8 space-y-8 print-container">
     
-    <div class="grid xl:grid-cols-[.9fr_1.1fr] gap-8 no-print">
+    <div id="main-grid" class="grid xl:grid-cols-[.9fr_1.1fr] gap-8 no-print">
       
-      <!-- Panel Input Formulir -->
-      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
+      <!-- Panel Input Formulir (Dapat Disembunyikan Otomatis) -->
+      <section id="form-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
           <div class="w-10 h-10 rounded-xl bg-[#eaf4fb] text-[#123a5b] flex items-center justify-center">
             <i data-lucide="file-pen-line" class="w-5 h-5"></i>
@@ -138,11 +138,11 @@
       </section>
 
       <!-- Dashboard Status & Persetujuan Hari Ini -->
-      <section>
+      <section id="dashboard-section" class="w-full">
         <div class="mb-5 flex justify-between items-end">
           <div>
             <span class="text-xs font-bold uppercase tracking-wider text-[#123a5b]">Dashboard Realtime</span>
-            <h2 class="text-xl font-bold text-slate-800">Pengajuan Aktif Hari Ini</h2>
+            <h2 class="text-xl font-bold text-slate-800">Pengajuan Aktif & Approval Hari Ini</h2>
           </div>
           <span id="active-date-badge" class="text-xs font-semibold bg-slate-200 text-slate-700 px-3 py-1 rounded-full"></span>
         </div>
@@ -314,28 +314,22 @@
     let leaveRequests = JSON.parse(localStorage.getItem('smk_izin_data')) || [];
     let currentFilteredData = [];
 
-    // FUNGSI UTAMA PENGIRIMAN WA TERPERBAIKI
     function sendWA(namaTujuan, pesan) {
       const empData = employeeDatabase[namaTujuan];
       if (!empData || !empData.phone || empData.phone === '-' || empData.phone === '') {
-        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan atau belum valid.`);
+        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan.`);
         return;
       }
 
-      // Format dan bersihkan nomor telepon (hanya digit)
       let cleanPhone = empData.phone.replace(/[^0-9]/g, '');
       if (cleanPhone.startsWith('0')) {
         cleanPhone = '62' + cleanPhone.slice(1);
       }
 
       const encodedText = encodeURIComponent(pesan);
-      // Menggunakan URL API resmi WhatsApp yang mendukung Desktop & Mobile Web
       const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
 
-      // Mencoba membuka di tab/jendela baru
       const win = window.open(waUrl, '_blank');
-      
-      // Fallback: Jika diproteksi oleh Pop-up Blocker browser, alihkan di jendela saat ini
       if (!win || win.closed || typeof win.closed === 'undefined') {
         window.location.href = waUrl;
       }
@@ -354,6 +348,57 @@
       const compactData = [req.id, req.nama, req.nik_karyawan, req.mapel, req.jenis, req.tglMulai, req.tglSelesai, req.pengganti, req.alasan];
       const encoded = btoa(encodeURIComponent(JSON.stringify(compactData)));
       return `${baseUrl}?p=${encoded}`;
+    }
+
+    // LOGIKA OTOMATIS: Sembunyikan Formulir Pengajuan Jika Dibuka Lewat Link WA (Approval Mode)
+    function handleUrlParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const payload = urlParams.get('p');
+      const isApprovalMode = urlParams.get('mode') === 'approval';
+
+      if (payload || isApprovalMode) {
+        // Sembunyikan panel formulir pengajuan
+        const formSec = document.getElementById('form-section');
+        if (formSec) formSec.classList.add('hidden');
+
+        // Ubah grid layout menjadi 1 kolom penuh untuk Dashboard Approval
+        const mainGrid = document.getElementById('main-grid');
+        if (mainGrid) {
+          mainGrid.classList.remove('xl:grid-cols-[.9fr_1.1fr]');
+          mainGrid.classList.add('grid-cols-1');
+        }
+      }
+
+      if (!payload) return;
+
+      try {
+        const arr = JSON.parse(decodeURIComponent(atob(payload)));
+        const decodedRequest = {
+          id: arr[0],
+          nama: arr[1],
+          nik_karyawan: arr[2],
+          mapel: arr[3],
+          jenis: arr[4],
+          tglMulai: arr[5],
+          tglSelesai: arr[6],
+          pengganti: arr[7],
+          alasan: arr[8],
+          approvalPengganti: 'Menunggu',
+          approvalKepsek: 'Menunggu',
+          statusFinal: 'Menunggu'
+        };
+        
+        let reqIndex = leaveRequests.findIndex(r => r.id === decodedRequest.id);
+        if (reqIndex === -1) {
+          leaveRequests.unshift(decodedRequest);
+        } else {
+          leaveRequests[reqIndex] = { ...decodedRequest, ...leaveRequests[reqIndex] };
+        }
+
+        saveData();
+      } catch (err) {
+        console.error("Gagal membaca data pengajuan dari URL:", err);
+      }
     }
 
     function initDropdowns() {
@@ -406,51 +451,12 @@
         `*SMK Sumbermas Sarana*\n\n` +
         `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n` +
         `Bapak/Ibu *${newRequest.nama}* mengajukan izin (${newRequest.jenis}) tgl *${newRequest.tglMulai}* s.d *${newRequest.tglSelesai}*.\n\n` +
-        `📲 *BUKA SISTEM:* \n${shortLink}\n\n` +
-        `*PILIHAN AKSI DI SISTEM:*\n` +
-        `✅ *[ DISETUJUI ]*\n` +
-        `❌ *[ DITOLAK ]*`;
+        `📲 *KLIK UNTUK PROSES APPROVAL:* \n${shortLink}\n\n` +
+        `*AKSI DI DASHBOARD:* \n✅ [ DISETUJUI ] / ❌ [ DITOLAK ]`;
 
       sendWA(newRequest.pengganti, pesanWA);
       document.getElementById('leave-form').reset();
     });
-
-    function handleUrlParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const payload = urlParams.get('p');
-
-      if (!payload) return;
-
-      try {
-        const arr = JSON.parse(decodeURIComponent(atob(payload)));
-        const decodedRequest = {
-          id: arr[0],
-          nama: arr[1],
-          nik_karyawan: arr[2],
-          mapel: arr[3],
-          jenis: arr[4],
-          tglMulai: arr[5],
-          tglSelesai: arr[6],
-          pengganti: arr[7],
-          alasan: arr[8],
-          approvalPengganti: 'Menunggu',
-          approvalKepsek: 'Menunggu',
-          statusFinal: 'Menunggu'
-        };
-        
-        let reqIndex = leaveRequests.findIndex(r => r.id === decodedRequest.id);
-        if (reqIndex === -1) {
-          leaveRequests.unshift(decodedRequest);
-        } else {
-          leaveRequests[reqIndex] = { ...decodedRequest, ...leaveRequests[reqIndex] };
-        }
-
-        saveData();
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (err) {
-        console.error("Gagal membaca payload ringkas URL:", err);
-      }
-    }
 
     function saveData() {
       localStorage.setItem('smk_izin_data', JSON.stringify(leaveRequests));
@@ -483,10 +489,8 @@
         const pesanKepsek = `*PERMOHONAN APPROVAL IZIN (Kepsek)*\n\n` +
           `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n` +
           `Pengajuan izin *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
-          `📲 *BUKA SISTEM:* \n${shortLink}\n\n` +
-          `*PILIHAN AKSI DI SISTEM:*\n` +
-          `✅ *[ DISETUJUI ]*\n` +
-          `❌ *[ DITOLAK ]*`;
+          `📲 *KLIK UNTUK PROSES APPROVAL:* \n${shortLink}\n\n` +
+          `*AKSI DI DASHBOARD:* \n✅ [ DISETUJUI ] / ❌ [ DITOLAK ]`;
 
         sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
       } else {
@@ -593,6 +597,11 @@
               <span class="text-slate-500 block">Periode:</span>
               <span class="font-semibold text-slate-700">${req.tglMulai} s.d ${req.tglSelesai}</span>
             </div>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+            <span class="text-slate-500 block mb-0.5">Alasan Ketidakhadiran:</span>
+            <p class="font-medium text-slate-700 italic">"${req.alasan}"</p>
           </div>
 
           <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-3 text-xs">
