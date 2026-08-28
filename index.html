@@ -311,6 +311,14 @@
     let leaveRequests = JSON.parse(localStorage.getItem('smk_izin_data')) || [];
     let currentFilteredData = [];
 
+    // Fungsi pembuat URL Pendek (Compact Array)
+    function generateShortUrl(req) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const compactData = [req.id, req.nama, req.nik_karyawan, req.mapel, req.jenis, req.tglMulai, req.tglSelesai, req.pengganti, req.alasan];
+      const encoded = btoa(encodeURIComponent(JSON.stringify(compactData)));
+      return `${baseUrl}?p=${encoded}`;
+    }
+
     function initDropdowns() {
       const selectGuru = document.getElementById('nama-guru');
       const selectPengganti = document.getElementById('guru-pengganti');
@@ -356,42 +364,56 @@
       renderCards();
       applyFilter();
 
-      const baseUrl = window.location.origin + window.location.pathname;
-      const encodedData = btoa(encodeURIComponent(JSON.stringify(newRequest)));
-      const linkApp = `${baseUrl}?payload=${encodedData}`;
+      const shortLink = generateShortUrl(newRequest);
 
-      const pesanWA = `*PENGAJUAN IZIN BARU (SMK Sumbermas Sarana)*\n\n` +
-        `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n\n` +
-        `Bapak/Ibu *${newRequest.nama}* (NIK: ${newRequest.nik_karyawan}) mengajukan izin (${newRequest.jenis}) pada tanggal *${newRequest.tglMulai}* s.d *${newRequest.tglSelesai}* dan memilih Anda sebagai *Guru/Karyawan Pengganti*.\n\n` +
-        `👇 *TEKAN TOMBOL LINK DI BAWAH UNTUK MEMBUAT KEPUTUSAN:* \n` +
-        `🔘 [ BUKA SISTEM IZIN ]\n` +
-        `${linkApp}`;
+      const pesanWA = `*PENGAJUAN IZIN BARU*\n` +
+        `*SMK Sumbermas Sarana*\n\n` +
+        `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n` +
+        `Bapak/Ibu *${newRequest.nama}* mengajukan izin (${newRequest.jenis}) tgl *${newRequest.tglMulai}* s.d *${newRequest.tglSelesai}*.\n\n` +
+        `📲 *BUKA SISTEM:* \n${shortLink}\n\n` +
+        `*PILIHAN AKSI DI SISTEM:*\n` +
+        `✅ *[ DISETUJUI ]*\n` +
+        `❌ *[ DITOLAK ]*`;
 
       sendWA(newRequest.pengganti, pesanWA);
       document.getElementById('leave-form').reset();
     });
 
-    // Menangani Payload URL saat aplikasi dibuka dari WA
+    // Menangani Payload URL Ringkas saat dibuka dari WA
     function handleUrlParams() {
       const urlParams = new URLSearchParams(window.location.search);
-      const payload = urlParams.get('payload');
+      const payload = urlParams.get('p');
 
       if (!payload) return;
 
       try {
-        const decodedRequest = JSON.parse(decodeURIComponent(atob(payload)));
+        const arr = JSON.parse(decodeURIComponent(atob(payload)));
+        const decodedRequest = {
+          id: arr[0],
+          nama: arr[1],
+          nik_karyawan: arr[2],
+          mapel: arr[3],
+          jenis: arr[4],
+          tglMulai: arr[5],
+          tglSelesai: arr[6],
+          pengganti: arr[7],
+          alasan: arr[8],
+          approvalPengganti: 'Menunggu',
+          approvalKepsek: 'Menunggu',
+          statusFinal: 'Menunggu'
+        };
         
         let reqIndex = leaveRequests.findIndex(r => r.id === decodedRequest.id);
         if (reqIndex === -1) {
           leaveRequests.unshift(decodedRequest);
         } else {
-          leaveRequests[reqIndex] = { ...leaveRequests[reqIndex], ...decodedRequest };
+          leaveRequests[reqIndex] = { ...decodedRequest, ...leaveRequests[reqIndex] };
         }
 
         saveData();
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
-        console.error("Gagal membaca payload URL:", err);
+        console.error("Gagal membaca payload ringkas URL:", err);
       }
     }
 
@@ -399,7 +421,7 @@
       localStorage.setItem('smk_izin_data', JSON.stringify(leaveRequests));
     }
 
-    // Update Status Persetujuan Guru Pengganti (Level 1) & Kirim WA ke Kepsek
+    // Update Status Persetujuan Guru Pengganti (Level 1)
     function updateApprovalPengganti(id) {
       const req = leaveRequests.find(r => r.id === id);
       if (!req) return;
@@ -413,7 +435,7 @@
         renderCards();
         applyFilter();
         
-        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) *DITOLAK* oleh Guru Pengganti (*${req.pengganti}*).`;
+        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) ❌ *DITOLAK* oleh Guru Pengganti (*${req.pengganti}*).`;
         sendWA(req.nama, pesan);
 
       } else if (val === 'Disetujui') {
@@ -422,17 +444,15 @@
         renderCards();
         applyFilter();
 
-        // Kirim WA Notifikasi ke Kepala Sekolah
-        const baseUrl = window.location.origin + window.location.pathname;
-        const payload = btoa(encodeURIComponent(JSON.stringify(req)));
-        const linkApp = `${baseUrl}?payload=${payload}`;
+        const shortLink = generateShortUrl(req);
 
-        const pesanKepsek = `*PERMOHONAN APPROVAL IZIN GURU (Level 2)*\n\n` +
-          `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n\n` +
-          `Pengajuan izin atas nama *${req.nama}* (NIK: ${req.nik_karyawan}) periode *${req.tglMulai}* s.d *${req.tglSelesai}* telah *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
-          `👇 *TEKAN TOMBOL LINK DI BAWAH UNTUK APPROVAL KEPSEK:* \n` +
-          `🔘 [ BUKA SISTEM IZIN ]\n` +
-          `${linkApp}`;
+        const pesanKepsek = `*PERMOHONAN APPROVAL IZIN (Kepsek)*\n\n` +
+          `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n` +
+          `Pengajuan izin *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
+          `📲 *BUKA SISTEM:* \n${shortLink}\n\n` +
+          `*PILIHAN AKSI DI SISTEM:*\n` +
+          `✅ *[ DISETUJUI ]*\n` +
+          `❌ *[ DITOLAK ]*`;
 
         sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
       } else {
@@ -443,7 +463,7 @@
       }
     }
 
-    // Update Status Persetujuan Kepala Sekolah (Level 2) & Kirim WA ke Pemohon
+    // Update Status Persetujuan Kepala Sekolah (Level 2)
     function updateApprovalKepsek(id) {
       const req = leaveRequests.find(r => r.id === id);
       if (!req) return;
@@ -464,7 +484,7 @@
         renderCards();
         applyFilter();
 
-        const pesan = `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nSelamat, pengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* telah *DISETUJUI RESMI* oleh Kepala Sekolah.`;
+        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI RESMI* oleh Kepala Sekolah.`;
         sendWA(req.nama, pesan);
 
       } else if (val === 'Ditolak') {
@@ -473,7 +493,7 @@
         renderCards();
         applyFilter();
 
-        const pesan = `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* *DITOLAK* oleh Kepala Sekolah.`;
+        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) ❌ *DITOLAK* oleh Kepala Sekolah.`;
         sendWA(req.nama, pesan);
 
       } else {
