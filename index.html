@@ -314,6 +314,33 @@
     let leaveRequests = JSON.parse(localStorage.getItem('smk_izin_data')) || [];
     let currentFilteredData = [];
 
+    // FUNGSI UTAMA PENGIRIMAN WA TERPERBAIKI
+    function sendWA(namaTujuan, pesan) {
+      const empData = employeeDatabase[namaTujuan];
+      if (!empData || !empData.phone || empData.phone === '-' || empData.phone === '') {
+        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan atau belum valid.`);
+        return;
+      }
+
+      // Format dan bersihkan nomor telepon (hanya digit)
+      let cleanPhone = empData.phone.replace(/[^0-9]/g, '');
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '62' + cleanPhone.slice(1);
+      }
+
+      const encodedText = encodeURIComponent(pesan);
+      // Menggunakan URL API resmi WhatsApp yang mendukung Desktop & Mobile Web
+      const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
+
+      // Mencoba membuka di tab/jendela baru
+      const win = window.open(waUrl, '_blank');
+      
+      // Fallback: Jika diproteksi oleh Pop-up Blocker browser, alihkan di jendela saat ini
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = waUrl;
+      }
+    }
+
     function getTodayString() {
       const d = new Date();
       const year = d.getFullYear();
@@ -510,7 +537,6 @@
       }
     }
 
-    // Render Cards Dashboard (KHUSUS HARI & TANGGAL AKTIF HARI INI)
     function renderCards() {
       const requestList = document.getElementById('request-list');
       requestList.innerHTML = '';
@@ -748,16 +774,6 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    }
-
-    function sendWA(namaTujuan, pesan) {
-      const empData = employeeDatabase[namaTujuan];
-      if (empData && empData.phone) {
-        const encodedText = encodeURIComponent(pesan);
-        window.open(`https://wa.me/${empData.phone}?text=${encodedText}`, '_blank');
-      } else {
-        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan di sistem.`);
-      }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
