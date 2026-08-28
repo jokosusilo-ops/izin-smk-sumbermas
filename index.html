@@ -363,8 +363,9 @@
       const pesanWA = `*PENGAJUAN IZIN BARU (SMK Sumbermas Sarana)*\n\n` +
         `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n\n` +
         `Bapak/Ibu *${newRequest.nama}* (NIK: ${newRequest.nik_karyawan}) mengajukan izin (${newRequest.jenis}) pada tanggal *${newRequest.tglMulai}* s.d *${newRequest.tglSelesai}* dan memilih Anda sebagai *Guru/Karyawan Pengganti*.\n\n` +
-        `Silakan buka tautan berikut untuk menentukan persetujuan (Setuju/Tolak):\n\n` +
-        `🔗 *Buka Sistem Izin:* \n${linkApp}`;
+        `👇 *TEKAN TOMBOL LINK DI BAWAH UNTUK MEMBUAT KEPUTUSAN:* \n` +
+        `🔘 [ BUKA SISTEM IZIN ]\n` +
+        `${linkApp}`;
 
       sendWA(newRequest.pengganti, pesanWA);
       document.getElementById('leave-form').reset();
@@ -429,8 +430,9 @@
         const pesanKepsek = `*PERMOHONAN APPROVAL IZIN GURU (Level 2)*\n\n` +
           `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n\n` +
           `Pengajuan izin atas nama *${req.nama}* (NIK: ${req.nik_karyawan}) periode *${req.tglMulai}* s.d *${req.tglSelesai}* telah *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
-          `Mohon keputusan persetujuan akhir (Setuju/Tolak) melalui tautan aplikasi berikut:\n\n` +
-          `🔗 *Buka Sistem Izin:* \n${linkApp}`;
+          `👇 *TEKAN TOMBOL LINK DI BAWAH UNTUK APPROVAL KEPSEK:* \n` +
+          `🔘 [ BUKA SISTEM IZIN ]\n` +
+          `${linkApp}`;
 
         sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
       } else {
