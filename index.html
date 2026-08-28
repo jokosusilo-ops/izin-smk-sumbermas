@@ -336,8 +336,7 @@
         selectPengganti.add(new Option(nama, nama));
       });
     }
-
-    // Submit Form Pengajuan & Kirim WA Notifikasi dengan Link Approval
+// Submit Form Pengajuan & Kirim WA Notifikasi dengan Encoded Data Payload
     document.getElementById('leave-form').addEventListener('submit', (e) => {
       e.preventDefault();
 
@@ -361,10 +360,12 @@
       renderCards();
       applyFilter();
 
-      // Buat URL aksi persetujuan Level 1 untuk WhatsApp
+      // Encode seluruh data pengajuan ke dalam string URL agar bisa dibaca di HP lain
       const baseUrl = window.location.origin + window.location.pathname;
-      const linkSetuju = `${baseUrl}?action=approve1&id=${newRequest.id}`;
-      const linkTolak = `${baseUrl}?action=reject1&id=${newRequest.id}`;
+      const encodedData = btoa(encodeURIComponent(JSON.stringify(newRequest)));
+      
+      const linkSetuju = `${baseUrl}?action=approve1&payload=${encodedData}`;
+      const linkTolak = `${baseUrl}?action=reject1&payload=${encodedData}`;
 
       const pesanWA = `*PENGAJUAN IZIN BARU (SMK Sumbermas Sarana)*\n\n` +
         `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n\n` +
@@ -377,299 +378,79 @@
       document.getElementById('leave-form').reset();
     });
 
-    // Menangani Akses via Tautan WhatsApp (URL Parameters Handler)
+    // Menangani Akses via Tautan WhatsApp di HP Mana Saja
     function handleUrlParams() {
       const urlParams = new URLSearchParams(window.location.search);
       const action = urlParams.get('action');
-      const reqId = parseInt(urlParams.get('id'));
+      const payload = urlParams.get('payload');
 
-      if (!action || !reqId) return;
+      if (!action || !payload) return;
 
-      const req = leaveRequests.find(r => r.id === reqId);
-      if (!req) {
-        alert("Data pengajuan izin tidak ditemukan!");
-        return;
-      }
-
-      const baseUrl = window.location.origin + window.location.pathname;
-
-      if (action === 'approve1') {
-        req.approvalPengganti = 'Disetujui';
-        saveData();
-        alert(`Berhasil! Anda telah MENYETUJUI pengajuan izin dari ${req.nama}. Notifikasi dilanjutkan ke Kepala Sekolah.`);
+      try {
+        // Decode data yang dikirim via URL WhatsApp
+        const decodedRequest = JSON.parse(decodeURIComponent(atob(payload)));
         
-        // Kirim Notifikasi WA ke Kepsek dengan link approval Level 2
-        const linkSetujuKepsek = `${baseUrl}?action=approve2&id=${req.id}`;
-        const linkTolakKepsek = `${baseUrl}?action=reject2&id=${req.id}`;
-
-        const pesanKepsek = `*PERMOHONAN APPROVAL IZIN GURU (Level 2)*\n\n` +
-          `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n\n` +
-          `Pengajuan izin atas nama *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
-          `Mohon keputusan persetujuan akhir dengan mengklik tautan berikut:\n\n` +
-          `✅ *SETUJUI IZIN:* \n${linkSetujuKepsek}\n\n` +
-          `❌ *TOLAK IZIN:* \n${linkTolakKepsek}`;
-
-        sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
-
-      } else if (action === 'reject1') {
-        req.approvalPengganti = 'Ditolak';
-        req.statusFinal = 'Ditolak';
-        saveData();
-        alert(`Pengajuan izin dari ${req.nama} telah DITOLAK.`);
-        
-        sendWA(req.nama, `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) *DITOLAK* oleh Guru Pengganti (*${req.pengganti}*).`);
-
-      } else if (action === 'approve2') {
-        req.approvalKepsek = 'Disetujui';
-        req.statusFinal = 'Disetujui';
-        saveData();
-        alert(`Berhasil! Kepala Sekolah telah MENYETUJUI izin atas nama ${req.nama}.`);
-        
-        sendWA(req.nama, `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nSelamat, pengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* telah *DISETUJUI RESMI* oleh Kepala Sekolah.`);
-
-      } else if (action === 'reject2') {
-        req.approvalKepsek = 'Ditolak';
-        req.statusFinal = 'Ditolak';
-        saveData();
-        alert(`Kepala Sekolah MENOLAK izin atas nama ${req.nama}.`);
-
-        sendWA(req.nama, `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* *DITOLAK* oleh Kepala Sekolah.`);
-      }
-
-      // Bersihkan parameter URL setelah diproses
-      window.history.replaceState({}, document.title, window.location.pathname);
-      renderCards();
-      applyFilter();
-    }
-
-    function saveData() {
-      localStorage.setItem('smk_izin_data', JSON.stringify(leaveRequests));
-    }
-
-    // Render Cards Dashboard Active
-    function renderCards() {
-      const requestList = document.getElementById('request-list');
-      requestList.innerHTML = '';
-
-      if (leaveRequests.length === 0) {
-        requestList.innerHTML = `
-          <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400">
-            <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
-            <p>Belum ada pengajuan izin terbaru.</p>
-          </div>`;
-        lucide.createIcons();
-        return;
-      }
-
-      leaveRequests.slice(0, 5).forEach(req => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4";
-        const badgeClass = req.statusFinal === 'Disetujui' ? 'status-disetujui' : (req.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu');
-
-        card.innerHTML = `
-          <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-            <div>
-              <h3 class="font-bold text-slate-800 text-base">${req.nama}</h3>
-              <p class="text-xs text-slate-500">${req.nip} · ${req.mapel}</p>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
-          </div>
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Jenis Izin:</span>
-              <span class="font-semibold text-slate-700">${req.jenis}</span>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Periode:</span>
-              <span class="font-semibold text-slate-700">${req.tglMulai} s.d ${req.tglSelesai}</span>
-            </div>
-          </div>
-          <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 grid sm:grid-cols-2 gap-3 text-xs">
-            <div>
-              <p class="font-bold text-slate-600 mb-1">1. Status Guru Pengganti</p>
-              <span class="font-semibold px-2 py-0.5 rounded text-xs ${req.approvalPengganti === 'Disetujui' ? 'bg-emerald-100 text-emerald-800' : (req.approvalPengganti === 'Ditolak' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
-                ${req.approvalPengganti}
-              </span>
-              <p class="text-[10px] text-slate-400 mt-1">Pengganti: ${req.pengganti}</p>
-            </div>
-            <div>
-              <p class="font-bold text-slate-600 mb-1">2. Status Kepala Sekolah</p>
-              <span class="font-semibold px-2 py-0.5 rounded text-xs ${req.approvalKepsek === 'Disetujui' ? 'bg-emerald-100 text-emerald-800' : (req.approvalKepsek === 'Ditolak' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
-                ${req.approvalKepsek}
-              </span>
-              <p class="text-[10px] text-slate-400 mt-1">Kepsek: JOKO SUSILO, S.Pd</p>
-            </div>
-          </div>
-        `;
-
-        requestList.appendChild(card);
-      });
-      lucide.createIcons();
-    }
-
-    // Logika Filter Komprehensif
-    function applyFilter() {
-      const tglAwal = document.getElementById('filter-tgl-awal').value;
-      const tglAkhir = document.getElementById('filter-tgl-akhir').value;
-      const bulan = document.getElementById('filter-bulan').value;
-      const tahun = document.getElementById('filter-tahun').value;
-      const status = document.getElementById('filter-status').value;
-
-      currentFilteredData = leaveRequests.filter(req => {
-        if (!req.tglMulai) return false;
-
-        const dateParts = req.tglMulai.split('-');
-        const reqTahun = dateParts[0];
-        const reqBulan = dateParts[1];
-
-        let matchDateRange = true;
-        if (tglAwal && tglAkhir) {
-          matchDateRange = (req.tglMulai >= tglAwal && req.tglMulai <= tglAkhir) || 
-                           (req.tglSelesai >= tglAwal && req.tglSelesai <= tglAkhir);
-        } else if (tglAwal) {
-          matchDateRange = (req.tglMulai >= tglAwal);
-        } else if (tglAkhir) {
-          matchDateRange = (req.tglMulai <= tglAkhir);
+        // Cek apakah data sudah ada di local storage HP penerima, jika belum maka tambahkan
+        let req = leaveRequests.find(r => r.id === decodedRequest.id);
+        if (!req) {
+          req = decodedRequest;
+          leaveRequests.unshift(req);
         }
 
-        const matchBulan = (bulan === 'all' || reqBulan === bulan);
-        const matchTahun = (tahun === 'all' || reqTahun === tahun);
-        const matchStatus = (status === 'all' || req.statusFinal === status);
+        const baseUrl = window.location.origin + window.location.pathname;
 
-        return matchDateRange && matchBulan && matchTahun && matchStatus;
-      });
+        if (action === 'approve1') {
+          req.approvalPengganti = 'Disetujui';
+          saveData();
+          alert(`Berhasil! Anda telah MENYETUJUI pengajuan izin dari ${req.nama}. Notifikasi dilanjutkan ke Kepala Sekolah.`);
+          
+          // Encode ulang data untuk persetujuan Kepala Sekolah (Level 2)
+          const encodedKepsekData = btoa(encodeURIComponent(JSON.stringify(req)));
+          const linkSetujuKepsek = `${baseUrl}?action=approve2&payload=${encodedKepsekData}`;
+          const linkTolakKepsek = `${baseUrl}?action=reject2&payload=${encodedKepsekData}`;
 
-      renderRekapTable();
-      updatePrintLabel();
-    }
+          const pesanKepsek = `*PERMOHONAN APPROVAL IZIN GURU (Level 2)*\n\n` +
+            `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n\n` +
+            `Pengajuan izin atas nama *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
+            `Mohon keputusan persetujuan akhir dengan mengklik tautan berikut:\n\n` +
+            `✅ *SETUJUI IZIN:* \n${linkSetujuKepsek}\n\n` +
+            `❌ *TOLAK IZIN:* \n${linkTolakKepsek}`;
 
-    // Reset Filter
-    function resetFilter() {
-      document.getElementById('filter-tgl-awal').value = '';
-      document.getElementById('filter-tgl-akhir').value = '';
-      document.getElementById('filter-bulan').value = 'all';
-      document.getElementById('filter-tahun').value = '2026';
-      document.getElementById('filter-status').value = 'all';
-      applyFilter();
-    }
+          sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
 
-    // Render Tabel Rekapitulasi
-    function renderRekapTable() {
-      const tbody = document.getElementById('rekap-table-body');
-      tbody.innerHTML = '';
+        } else if (action === 'reject1') {
+          req.approvalPengganti = 'Ditolak';
+          req.statusFinal = 'Ditolak';
+          saveData();
+          alert(`Pengajuan izin dari ${req.nama} telah DITOLAK.`);
+          
+          sendWA(req.nama, `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) *DITOLAK* oleh Guru Pengganti (*${req.pengganti}*).`);
 
-      document.getElementById('count-rekap').textContent = currentFilteredData.length;
+        } else if (action === 'approve2') {
+          req.approvalKepsek = 'Disetujui';
+          req.statusFinal = 'Disetujui';
+          saveData();
+          alert(`Berhasil! Kepala Sekolah telah MENYETUJUI izin atas nama ${req.nama}.`);
+          
+          sendWA(req.nama, `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nSelamat, pengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* telah *DISETUJUI RESMI* oleh Kepala Sekolah.`);
 
-      if (currentFilteredData.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="9" class="p-6 text-center text-slate-400 italic">
-              Tidak ada data izin yang sesuai dengan filter periode terpilih.
-            </td>
-          </tr>`;
-        return;
-      }
+        } else if (action === 'reject2') {
+          req.approvalKepsek = 'Ditolak';
+          req.statusFinal = 'Ditolak';
+          saveData();
+          alert(`Kepala Sekolah MENOLAK izin atas nama ${req.nama}.`);
 
-      currentFilteredData.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="p-3 text-center font-semibold text-slate-600">${index + 1}</td>
-          <td class="p-3 font-bold text-slate-800">${item.nama}</td>
-          <td class="p-3 text-slate-600">${item.nip || '-'}</td>
-          <td class="p-3 text-slate-600">${item.mapel || '-'}</td>
-          <td class="p-3 font-semibold text-slate-700">${item.jenis}</td>
-          <td class="p-3 text-slate-600">${item.tglMulai}</td>
-          <td class="p-3 text-slate-600">${item.tglSelesai}</td>
-          <td class="p-3 text-slate-600">${item.pengganti}</td>
-          <td class="p-3 text-center">
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${item.statusFinal === 'Disetujui' ? 'status-disetujui' : (item.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu')}">
-              ${item.statusFinal}
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+          sendWA(req.nama, `*STATUS PENGAJUAN IZIN (SMK Sumbermas Sarana)*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda untuk tanggal *${req.tglMulai}* s.d *${req.tglSelesai}* *DITOLAK* oleh Kepala Sekolah.`);
+        }
 
-    // Update Label Periode Cetak
-    function updatePrintLabel() {
-      const tglAwal = document.getElementById('filter-tgl-awal').value;
-      const tglAkhir = document.getElementById('filter-tgl-akhir').value;
-      const bulanText = document.getElementById('filter-bulan').options[document.getElementById('filter-bulan').selectedIndex].text;
-      const tahunText = document.getElementById('filter-tahun').value;
+        // Bersihkan parameter URL di browser agar aman
+        window.history.replaceState({}, document.title, window.location.pathname);
+        renderCards();
+        applyFilter();
 
-      let label = "";
-
-      if (tglAwal && tglAkhir) {
-        label = `Tanggal ${tglAwal} s.d ${tglAkhir}`;
-      } else if (tglAwal) {
-        label = `Mulai Tanggal ${tglAwal}`;
-      } else if (tglAkhir) {
-        label = `Sampai Tanggal ${tglAkhir}`;
-      } else {
-        label = `${bulanText} ${tahunText !== 'all' ? tahunText : ''}`;
-      }
-
-      document.getElementById('print-periode-label').textContent = label;
-    }
-
-    // Export Data Rekap ke CSV
-    function exportToCSV() {
-      if (currentFilteredData.length === 0) {
-        alert("Tidak ada data rekap untuk diunduh!");
-        return;
-      }
-
-      let csvContent = "\uFEFF";
-      csvContent += "No,Nama Guru/Karyawan,NIP/NIK,Unit/Mapel,Jenis Izin,Tanggal Mulai,Tanggal Selesai,Guru Pengganti,Alasan,Status Final\n";
-
-      currentFilteredData.forEach((item, idx) => {
-        const row = [
-          idx + 1,
-          `"${item.nama}"`,
-          `"${item.nip || '-'}"`,
-          `"${item.mapel || '-'}"`,
-          `"${item.jenis}"`,
-          `"${item.tglMulai}"`,
-          `"${item.tglSelesai}"`,
-          `"${item.pengganti}"`,
-          `"${item.alasan.replace(/"/g, '""')}"`,
-          `"${item.statusFinal}"`
-        ];
-        csvContent += row.join(",") + "\n";
-      });
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `Rekap_Izin_SMK_Sumbermas_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // Buka Aplikasi WhatsApp
-    function sendWA(namaTujuan, pesan) {
-      const phone = phoneBook[namaTujuan];
-      if (phone) {
-        const encodedText = encodeURIComponent(pesan);
-        window.open(`https://wa.me/${phone}?text=${encodedText}`, '_blank');
-      } else {
-        alert(`Nomor WhatsApp untuk ${namaTujuan} tidak ditemukan.`);
+      } catch (err) {
+        console.error("Gagal mendecode data tautan:", err);
+        alert("Terjadi kesalahan saat membaca tautan persetujuan WhatsApp.");
       }
     }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      initDropdowns();
-      handleUrlParams();
-      renderCards();
-      applyFilter();
-
-      const today = new Date();
-      document.getElementById('current-print-date').textContent = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    });
-  </script>
-</body>
-</html>
+    
