@@ -504,92 +504,114 @@
       }
     }
 
-    // Render Cards Dashboard Active
-    function renderCards() {
-      const requestList = document.getElementById('request-list');
-      requestList.innerHTML = '';
+    // Render Cards Dashboard (KHUSUS HARI & TANGGAL AKTIF HARI INI)
+function renderCards() {
+  const requestList = document.getElementById('request-list');
+  requestList.innerHTML = '';
 
-      if (leaveRequests.length === 0) {
-        requestList.innerHTML = `
-          <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400">
-            <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
-            <p>Belum ada pengajuan izin terbaru.</p>
-          </div>`;
-        lucide.createIcons();
-        return;
-      }
+  const todayStr = getTodayString(); // Menghasilkan format YYYY-MM-DD hari ini
+  
+  // Tampilkan teks tanggal aktif hari ini pada badge (Contoh: "Jumat, 28 Agustus 2026")
+  const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  document.getElementById('active-date-badge').textContent = new Date().toLocaleDateString('id-ID', optionsDate);
 
-      leaveRequests.slice(0, 5).forEach(req => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4";
-        const badgeClass = req.statusFinal === 'Disetujui' ? 'status-disetujui' : (req.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu');
+  // Filter pengajuan: Hanya tampilkan jika hari ini masuk dalam rentang izin ATAU baru diajukan hari ini
+  const activeRequests = leaveRequests.filter(req => {
+    // 1. Cek apakah hari ini ada di dalam rentang tglMulai s/d tglSelesai
+    const isWithinRange = (todayStr >= req.tglMulai && todayStr <= req.tglSelesai);
 
-        card.innerHTML = `
-          <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-            <div>
-              <h3 class="font-bold text-slate-800 text-base">${req.nama}</h3>
-              <p class="text-xs text-slate-500">NIK: ${req.nik_karyawan} · ${req.mapel}</p>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
+    // 2. Cek apakah pengajuan dibuat pada tanggal hari ini
+    const reqDateCreated = new Date(req.id);
+    const createdYear = reqDateCreated.getFullYear();
+    const createdMonth = String(reqDateCreated.getMonth() + 1).padStart(2, '0');
+    const createdDay = String(reqDateCreated.getDate()).padStart(2, '0');
+    const createdStr = `${createdYear}-${createdMonth}-${createdDay}`;
+    const isCreatedToday = (createdStr === todayStr);
+
+    return isWithinRange || isCreatedToday;
+  });
+
+  // Tampilan jika tidak ada izin aktif hari ini
+  if (activeRequests.length === 0) {
+    requestList.innerHTML = `
+      <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400">
+        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+        <p class="font-semibold text-slate-600">Tidak ada pengajuan izin aktif untuk hari ini.</p>
+        <p class="text-xs mt-1">Data izin lampau dan mendatang dapat dilihat di tabel Rekapitulasi bawah.</p>
+      </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  // Render kartu pengajuan aktif
+  activeRequests.forEach(req => {
+    const card = document.createElement('div');
+    card.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4";
+    const badgeClass = req.statusFinal === 'Disetujui' ? 'status-disetujui' : (req.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu');
+
+    card.innerHTML = `
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-800 text-base">${req.nama}</h3>
+          <p class="text-xs text-slate-500">NIK: ${req.nik_karyawan} · ${req.mapel}</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="bg-slate-50 p-2.5 rounded-xl">
+          <span class="text-slate-500 block">Jenis Izin:</span>
+          <span class="font-semibold text-slate-700">${req.jenis}</span>
+        </div>
+        <div class="bg-slate-50 p-2.5 rounded-xl">
+          <span class="text-slate-500 block">Periode:</span>
+          <span class="font-semibold text-slate-700">${req.tglMulai} s.d ${req.tglSelesai}</span>
+        </div>
+      </div>
+
+      <!-- Dropdown Approval Persetujuan -->
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-3 text-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+          <div>
+            <p class="font-bold text-slate-700">1. Persetujuan Pengganti</p>
+            <p class="text-[11px] text-slate-500">${req.pengganti}</p>
           </div>
-
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Jenis Izin:</span>
-              <span class="font-semibold text-slate-700">${req.jenis}</span>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Periode:</span>
-              <span class="font-semibold text-slate-700">${req.tglMulai} s.d ${req.tglSelesai}</span>
-            </div>
+          <div class="flex items-center gap-1.5">
+            <select id="acc-pengganti-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
+              <option value="Menunggu" ${req.approvalPengganti === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+              <option value="Disetujui" ${req.approvalPengganti === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
+              <option value="Ditolak" ${req.approvalPengganti === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
+            </select>
+            <button onclick="updateApprovalPengganti(${req.id})" class="bg-[#123a5b] text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-[#1a4a73] transition">
+              Simpan & WA Kepsek
+            </button>
           </div>
+        </div>
 
-          <!-- Section Dropdown Approval -->
-          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-3 text-xs">
-            
-            <!-- Level 1: Guru Pengganti -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
-              <div>
-                <p class="font-bold text-slate-700">1. Persetujuan Pengganti</p>
-                <p class="text-[11px] text-slate-500">${req.pengganti}</p>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <select id="acc-pengganti-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
-                  <option value="Menunggu" ${req.approvalPengganti === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
-                  <option value="Disetujui" ${req.approvalPengganti === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
-                  <option value="Ditolak" ${req.approvalPengganti === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
-                </select>
-                <button onclick="updateApprovalPengganti(${req.id})" class="bg-[#123a5b] text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-[#1a4a73] transition">
-                  Simpan & WA Kepsek
-                </button>
-              </div>
-            </div>
-
-            <!-- Level 2: Kepala Sekolah -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
-              <div>
-                <p class="font-bold text-slate-700">2. Persetujuan Kepsek</p>
-                <p class="text-[11px] text-slate-500">JOKO SUSILO, S.Pd</p>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <select id="acc-kepsek-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
-                  <option value="Menunggu" ${req.approvalKepsek === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
-                  <option value="Disetujui" ${req.approvalKepsek === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
-                  <option value="Ditolak" ${req.approvalKepsek === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
-                </select>
-                <button onclick="updateApprovalKepsek(${req.id})" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-emerald-700 transition">
-                  Simpan & WA Pemohon
-                </button>
-              </div>
-            </div>
-
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
+          <div>
+            <p class="font-bold text-slate-700">2. Persetujuan Kepsek</p>
+            <p class="text-[11px] text-slate-500">JOKO SUSILO, S.Pd</p>
           </div>
-        `;
+          <div class="flex items-center gap-1.5">
+            <select id="acc-kepsek-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
+              <option value="Menunggu" ${req.approvalKepsek === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+              <option value="Disetujui" ${req.approvalKepsek === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
+              <option value="Ditolak" ${req.approvalKepsek === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
+            </select>
+            <button onclick="updateApprovalKepsek(${req.id})" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-emerald-700 transition">
+              Simpan & WA Pemohon
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
 
-        requestList.appendChild(card);
-      });
-      lucide.createIcons();
-    }
+    requestList.appendChild(card);
+  });
+
+  lucide.createIcons();
+}
 
     // Filter Data
     function applyFilter() {
