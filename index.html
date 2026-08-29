@@ -1,799 +1,444 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Approval Izin & Presensi - SMK Sumbermas Sarana</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <title>SMK Sumbermas Sarana - Sistem Approval Izin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root { --ink: #102a43; --navy: #123a5b; --sky: #eaf4fb; }
-    body { font-family: "DM Sans", sans-serif; color: var(--ink); background-color: #f8fafc; }
-    .display-font { font-family: "Fraunces", serif; }
-    .field-control { border: 1px solid #cbdbe8; border-radius: .8rem; width: 100%; padding: .72rem .85rem; color: #17324d; background: #fff; outline: none; transition: all .2s; }
-    .field-control:focus { border-color: #123a5b; box-shadow: 0 0 0 3px rgba(18,58,91,.15); }
-    .status-menunggu { background: #fff5dc; color: #965d08; }
-    .status-disetujui { background: #ddf5e7; color: #147340; }
-    .status-ditolak { background: #ffe5e1; color: #b53b29; }
+    :root {
+      --primary: #1e3a8a;
+      --primary-hover: #1e40af;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --bg-light: #f8fafc;
+      --text-dark: #0f172a;
+      --border-color: #e2e8f0;
+    }
 
-    @media print {
-      .no-print { display: none !important; }
-      body { background: white !important; color: black !important; font-size: 11pt; }
-      .print-header { display: block !important; }
-      .print-container { width: 100% !important; margin: 0 !important; padding: 0 !important; }
-      table.print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-      table.print-table th, table.print-table td { border: 1px solid #333 !important; padding: 6px 10px; text-align: left; }
-      table.print-table th { background-color: #f1f5f9 !important; font-weight: bold; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      padding-bottom: 40px;
+    }
+
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-title img {
+      width: 45px;
+      height: 45px;
+      background: white;
+      border-radius: 50%;
+      padding: 2px;
+    }
+
+    .badge-status {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .status-disetujui { background: #d1fae5; color: #065f46; }
+    .status-menunggu { background: #fef3c7; color: #92400e; }
+    .status-ditolak { background: #fee2e2; color: #991b1b; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #64748b;
     }
   </style>
 </head>
-<body class="w-full min-h-screen">
+<body>
 
-  <!-- Header Aplikasi -->
-  <header class="no-print border-b border-slate-200 bg-white shadow-sm sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-5 py-3.5 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="kop.png" alt="Logo SMK Sumbermas Sarana" class="w-11 h-12 object-contain">
-        <div>
-          <h1 class="font-bold text-lg leading-tight text-[#123a5b]">SMK Sumbermas Sarana</h1>
-          <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Sistem Approval Izin Realtime</p>
-        </div>
+  <header>
+    <div class="header-title">
+      <i class="fa-solid fa-school fa-2x"></i>
+      <div>
+        <h1>SMK Sumbermas Sarana</h1>
+        <p style="font-size: 0.8rem; opacity: 0.9;">Sistem Approval Izin Realtime</p>
       </div>
-      <div id="header-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold border border-emerald-200">
-        <i data-lucide="shield-check" class="w-4 h-4"></i>
-        <span>Approval Mode</span>
-      </div>
+    </div>
+    <div class="badge-status">
+      <i class="fa-solid fa-circle-check"></i> Approval Mode
     </div>
   </header>
 
-  <!-- Kop Surat Cetak PDF/Printer -->
-  <div class="hidden print-header mb-6 pb-4 border-b-4 border-double border-black">
-    <div class="flex items-center justify-between gap-4">
-      <img src="kop.png" alt="Logo SMK Sumbermas Sarana" class="w-20 h-24 object-contain">
-      <div class="text-center flex-1">
-        <h1 class="text-2xl font-bold uppercase tracking-wide leading-tight">SMK SUMBERMAS SARANA</h1>
-        <h2 class="text-sm font-bold uppercase tracking-normal text-slate-800 mt-1">LAMPIRAN LAPORAN REKAPITULASI KEHADIRAN & IZIN GURU / KARYAWAN</h2>
-        <p class="text-xs text-slate-600 mt-0.5">Periode: <span id="print-periode-label" class="font-semibold">Semua Periode</span></p>
-      </div>
-      <div class="w-20"></div>
-    </div>
-  </div>
-
-  <main class="max-w-7xl mx-auto px-5 py-8 space-y-8 print-container">
-    
-    <div id="main-grid" class="grid xl:grid-cols-[.9fr_1.1fr] gap-8 no-print">
-      
-      <!-- Panel Input Formulir (Dapat Disembunyikan Otomatis) -->
-      <section id="form-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
-        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-          <div class="w-10 h-10 rounded-xl bg-[#eaf4fb] text-[#123a5b] flex items-center justify-center">
-            <i data-lucide="file-pen-line" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h2 class="font-bold text-lg text-[#123a5b]">Formulir Pengajuan Izin</h2>
-            <p class="text-xs text-slate-500">Lengkapi data izin dan pilih pengganti tugas</p>
-          </div>
+  <main>
+    <div class="grid-container">
+      <section class="card">
+        <div class="card-title">
+          <i class="fa-solid fa-pen-to-square"></i>
+          Formulir Pengajuan Izin
         </div>
-
-        <form id="leave-form" class="space-y-4">
-          <div>
-            <label class="block text-sm font-semibold mb-1.5 text-slate-700">Nama Pemohon</label>
-            <select id="nama-guru" class="field-control" required>
-              <option value="" disabled selected>-- Pilih Nama Guru / Karyawan --</option>
+        <form id="formIzin">
+          <div class="form-group">
+            <label>Nama Guru / Karyawan</label>
+            <input type="text" id="nama" required placeholder="Contoh: Budi Santoso">
+          </div>
+          <div class="form-group">
+            <label>NIK Karyawan</label>
+            <input type="text" id="nik" required placeholder="Contoh: 24.123">
+          </div>
+          <div class="form-group">
+            <label>Jabatan / Unit</label>
+            <input type="text" id="jabatan" required placeholder="Contoh: Guru Produktif">
+          </div>
+          <div class="form-group">
+            <label>Jenis Izin</label>
+            <select id="jenisIzin" required>
+              <option value="Izin Sakit">Izin Sakit</option>
+              <option value="Izin Keperluan Keluarga">Izin Keperluan Keluarga</option>
+              <option value="Cuti Tahunan">Cuti Tahunan</option>
+              <option value="Dinas Luar">Dinas Luar</option>
             </select>
           </div>
-
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold mb-1.5 text-slate-700">NIK Karyawan</label>
-              <input id="nik-karyawan" class="field-control" type="text" placeholder="NIK Karyawan" required readonly>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold mb-1.5 text-slate-700">Jabatan / Unit Kerja</label>
-              <input id="mata-pelajaran" class="field-control" type="text" placeholder="Jabatan / Unit Kerja" required readonly>
-            </div>
+          <div class="form-group">
+            <label>Tanggal Mulai</label>
+            <input type="date" id="tglMulai" required>
           </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1.5 text-slate-700">Jenis Izin</label>
-            <select id="jenis-izin" class="field-control" required>
-              <option value="" disabled selected>-- Pilih Jenis Izin --</option>
-              <option value="Sakit">Sakit</option>
-              <option value="Keperluan Keluarga">Keperluan Keluarga</option>
-              <option value="Dinas / Pelatihan">Dinas / Pelatihan</option>
-              <option value="Izin Pribadi">Izin Pribadi</option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
+          <div class="form-group">
+            <label>Tanggal Selesai</label>
+            <input type="date" id="tglSelesai" required>
           </div>
-
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold mb-1.5 text-slate-700">Tanggal Mulai</label>
-              <input id="tanggal-mulai" class="field-control" type="date" required>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold mb-1.5 text-slate-700">Tanggal Selesai</label>
-              <input id="tanggal-selesai" class="field-control" type="date" required>
-            </div>
+          <div class="form-group">
+            <label>Pengganti Tugas</label>
+            <input type="text" id="pengganti" placeholder="Nama guru pengganti" required>
           </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1.5 text-slate-700">Guru / Karyawan Pengganti</label>
-            <select id="guru-pengganti" class="field-control" required>
-              <option value="" disabled selected>-- Pilih Pengganti Tugas --</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-1.5 text-slate-700">Alasan Pengajuan</label>
-            <textarea id="alasan" class="field-control" rows="3" placeholder="Jelaskan detail alasan ketidakhadiran..." required></textarea>
-          </div>
-
-          <button id="submit-button" class="w-full bg-[#123a5b] hover:bg-[#1a4a73] text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2" type="submit">
-            <i data-lucide="send" class="w-4 h-4"></i>
-            <span>Kirim & Notifikasi WhatsApp</span>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan
           </button>
         </form>
       </section>
 
-      <!-- Dashboard Status & Persetujuan Hari Ini -->
-      <section id="dashboard-section" class="w-full">
-        <div class="mb-5 flex justify-between items-end">
-          <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#123a5b]">Dashboard Realtime</span>
-            <h2 class="text-xl font-bold text-slate-800">Pengajuan Aktif & Approval Hari Ini</h2>
-          </div>
-          <span id="active-date-badge" class="text-xs font-semibold bg-slate-200 text-slate-700 px-3 py-1 rounded-full"></span>
+      <section class="card">
+        <div class="card-title">
+          <i class="fa-solid fa-chart-line"></i>
+          Ringkasan Status Realtime
         </div>
-        <div id="request-list" class="space-y-4"></div>
+        <p style="font-size: 0.9rem; color: #475569; margin-bottom: 1rem;">
+          Data pengajuan izin tersimpan otomatis dan diperbarui secara realtime pada tabel rekapitulasi di bawah ini.
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div style="flex: 1; background: #eff6ff; padding: 15px; border-radius: 8px; text-align: center;">
+            <span style="font-size: 0.8rem; color: #1e40af;">Total Izin</span>
+            <h2 id="totalIzin">0</h2>
+          </div>
+          <div style="flex: 1; background: #f0fdf4; padding: 15px; border-radius: 8px; text-align: center;">
+            <span style="font-size: 0.8rem; color: #166534;">Disetujui</span>
+            <h2 id="totalDisetujui">0</h2>
+          </div>
+          <div style="flex: 1; background: #fffbeb; padding: 15px; border-radius: 8px; text-align: center;">
+            <span style="font-size: 0.8rem; color: #92400e;">Menunggu</span>
+            <h2 id="totalMenunggu">0</h2>
+          </div>
+        </div>
       </section>
-
     </div>
 
-    <!-- Modul Rekap & Laporan -->
-    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-      
-      <div class="no-print space-y-4 border-b border-slate-100 pb-5">
+    <section class="card">
+      <div class="card-title">
+        <i class="fa-solid fa-filter"></i>
+        Filter & Rekapitulasi Data Izin
+      </div>
+
+      <div class="filter-grid">
         <div>
-          <h2 class="text-lg font-bold text-[#123a5b] flex items-center gap-2">
-            <i data-lucide="filter" class="w-5 h-5"></i>
-            Filter Rekapitulasi Izin
-          </h2>
-          <p class="text-xs text-slate-500">Filter berdasarkan rentang tanggal spesifik, bulan, tahun, atau status persetujuan</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-600">Dari Tanggal</label>
-            <input type="date" id="filter-tgl-awal" class="field-control text-sm py-2">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-600">Sampai Tanggal</label>
-            <input type="date" id="filter-tgl-akhir" class="field-control text-sm py-2">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-600">Bulan</label>
-            <select id="filter-bulan" class="field-control text-sm py-2">
-              <option value="all">Semua Bulan</option>
-              <option value="01">Januari</option>
-              <option value="02">Februari</option>
-              <option value="03">Maret</option>
-              <option value="04">April</option>
-              <option value="05">Mei</option>
-              <option value="06">Juni</option>
-              <option value="07">Juli</option>
-              <option value="08">Agustus</option>
-              <option value="09">September</option>
-              <option value="10">Oktober</option>
-              <option value="11">November</option>
-              <option value="12">Desember</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-600">Tahun</label>
-            <select id="filter-tahun" class="field-control text-sm py-2">
-              <option value="all">Semua Tahun</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold mb-1 text-slate-600">Status</label>
-            <select id="filter-status" class="field-control text-sm py-2">
-              <option value="all" selected>Semua Status</option>
-              <option value="Disetujui">Disetujui</option>
-              <option value="Menunggu">Menunggu</option>
-              <option value="Ditolak">Ditolak</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2 justify-end pt-1">
-          <button onclick="resetFilter()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition">
-            Reset Filter
-          </button>
-          <button onclick="applyFilter()" class="px-5 py-2 bg-[#123a5b] hover:bg-[#1a4a73] text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
-            <i data-lucide="search" class="w-3.5 h-3.5"></i> Terapkan Filter
-          </button>
+          <label style="font-size:0.8rem; font-weight:600;">Filter Status</label>
+          <select id="filterStatus" onchange="renderTable()">
+            <option value="all">Semua Status</option>
+            <option value="Disetujui">Disetujui</option>
+            <option value="Menunggu">Menunggu</option>
+            <option value="Ditolak">Ditolak</option>
+          </select>
         </div>
       </div>
 
-      <div class="no-print flex justify-between items-center bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-        <span class="text-xs font-semibold text-slate-600">
-          Ditemukan <strong id="count-rekap" class="text-slate-900">0</strong> data izin pada periode terpilih
-        </span>
-        <div class="flex items-center gap-2">
-          <button onclick="exportToCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-xs flex items-center gap-2 transition">
-            <i data-lucide="download" class="w-4 h-4"></i> Download Excel (.CSV)
-          </button>
-          <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-semibold text-xs flex items-center gap-2 transition">
-            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Lampiran Laporan
-          </button>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left border-collapse print-table">
+      <div class="table-responsive">
+        <table>
           <thead>
-            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
-              <th class="p-3 font-semibold text-center w-12">No</th>
-              <th class="p-3 font-semibold">Nama Guru / Karyawan</th>
-              <th class="p-3 font-semibold">NIK Karyawan</th>
-              <th class="p-3 font-semibold">Jabatan / Unit</th>
-              <th class="p-3 font-semibold">Jenis Izin</th>
-              <th class="p-3 font-semibold">Tanggal Mulai</th>
-              <th class="p-3 font-semibold">Tanggal Selesai</th>
-              <th class="p-3 font-semibold">Pengganti</th>
-              <th class="p-3 font-semibold text-center">Status Final</th>
+            <tr>
+              <th>No</th>
+              <th>Nama Guru / Karyawan</th>
+              <th>NIK</th>
+              <th>Jabatan</th>
+              <th>Jenis Izin</th>
+              <th>Tgl Mulai</th>
+              <th>Tgl Selesai</th>
+              <th>Pengganti</th>
+              <th>Status</th>
+              <th>Aksi</th>
             </tr>
           </thead>
-          <tbody id="rekap-table-body" class="divide-y divide-slate-200"></tbody>
+          <tbody id="tabelIzinBody">
+            </tbody>
         </table>
       </div>
-
-      <div class="hidden print-header mt-12 pt-6">
-        <div class="flex justify-between text-center">
-          <div>
-            <p class="text-xs">Mengetahui,</p>
-            <p class="text-sm font-bold mt-1">Kepala Sekolah</p>
-            <div class="h-16"></div>
-            <p class="text-sm font-bold underline">JOKO SUSILO, S.Pd</p>
-            <p class="text-xs">NIK Karyawan: 13.509</p>
-          </div>
-          <div>
-            <p class="text-xs">Pangkalan Bun, <span id="current-print-date"></span></p>
-            <p class="text-sm font-bold mt-1">Petugas Administrasi / Kehadiran</p>
-            <div class="h-16"></div>
-            <p class="text-sm font-bold underline">RUSMIATI, S.E</p>
-            <p class="text-xs">NIK Karyawan: 24.370</p>
-          </div>
-        </div>
-      </div>
-
     </section>
   </main>
 
   <script>
-    const employeeDatabase = {
-      "JOKO SUSILO, S.Pd": { phone: "6285230950381", nik_karyawan: "13.509", mapel: "Kepala Sekolah" },
-      "TITIN PUSPITA SARI HUTAPEA,S.Pd": { phone: "6282155138864", nik_karyawan: "18.015", mapel: "Guru" },
-      "YANTI NURLIYANI, S.Pd": { phone: "6285654271885", nik_karyawan: "12.506", mapel: "Guru" },
-      "GUSTAF PRIYADI, S.Pd": { phone: "6281257615088", nik_karyawan: "13.518", mapel: "Guru" },
-      "RATIH PONIASARI, S.Pd": { phone: "6285787701561", nik_karyawan: "17.035", mapel: "Guru" },
-      "MUHAMMAD CHOIRUL FAJAR, S.P": { phone: "6282158783400", nik_karyawan: "22.307", mapel: "Guru" },
-      "YUSTIKA VENI SAPUTRI": { phone: "6282149879510", nik_karyawan: "23.027", mapel: "Guru" },
-      "WAHYU ADIATAMA, S.P": { phone: "6285742221915", nik_karyawan: "23.340", mapel: "Guru" },
-      "THIYO EKO JULYANTO, S.Pd": { phone: "6282252352472", nik_karyawan: "24.402", mapel: "Guru" },
-      "MOH KURNIAWAN EFENDI. S.Pd": { phone: "6281554437802", nik_karyawan: "24.404", mapel: "Guru" },
-      "RAMADHAN SETIYA GALUH PAMUJI, S.P": { phone: "6282154159105", nik_karyawan: "25.220", mapel: "Guru" },
-      "SULIS, S.Pd": { phone: "6285821897452", nik_karyawan: "25.454", mapel: "Guru" },
-      "HAFID AL HAMDA, S.Pd": { phone: "6282256598276", nik_karyawan: "25.288", mapel: "Guru" },
-      "RUSMIATI, S.E": { phone: "6285651121418", nik_karyawan: "24.370", mapel: "Administrasi" },
-      "SYIFA UNNISA, S.Pd": { phone: "6285895042030", nik_karyawan: "25.690", mapel: "Guru" },
-      "RATNA, S.Pd": { phone: "6281270452172", nik_karyawan: "24.057", mapel: "Guru" },
-      "MUHAMMAD THORIQ HIDAYAT, S.P": { phone: "6289505774201", nik_karyawan: "26.111", mapel: "Guru" },
-      "ZALIARI NAFISA ARDHANI": { phone: "6285822093461", nik_karyawan: "26.246", mapel: "Guru" },
-      "MOHAMAD SUTRISNO, ST": { phone: "6282250455464", nik_karyawan: "14.272", mapel: "IT" },
-      "MUHAMMAD ARRASY J ISKANDAR, S.Kom": { phone: "6282226182628", nik_karyawan: "26.044", mapel: "Grafis" },
-      "PEBRISHA SINTHANI DREY": { phone: "6285134615905", nik_karyawan: "25.286", mapel: "Tata Usaha" },
-      "SASKIA SALSABILAH, S.P": { phone: "6281545332722", nik_karyawan: "26.310", mapel: "Guru" },
-      "SOFIA, S.Kom": { phone: "6283106618348", nik_karyawan: "26.426", mapel: "Guru" },
-      "UJANG MAHDARI": { phone: "6285845230859", nik_karyawan: "-", mapel: "Implasmen" },
-      "AHMADI": { phone: "6285753591537", nik_karyawan: "26.042", mapel: "Implasmen" },
-      "NOVITA SARI": { phone: "6282124431574", nik_karyawan: "26.425", mapel: "Office Girl" },
-      "ZONNA PRIMAHADI PUTRI ANANDITA": { phone: "6289652859749", nik_karyawan: "-", mapel: "Pengasuh TPA" }
-    };
-
-    let leaveRequests = JSON.parse(localStorage.getItem('smk_izin_data')) || [];
-    let currentFilteredData = [];
-
-    function sendWA(namaTujuan, pesan) {
-      const empData = employeeDatabase[namaTujuan];
-      if (!empData || !empData.phone || empData.phone === '-' || empData.phone === '') {
-        alert(`Data nomor WhatsApp untuk "${namaTujuan}" tidak ditemukan.`);
-        return;
+    // Initial State / Storage
+    let listPengajuan = JSON.parse(localStorage.getItem('data_izin_smk')) || [
+      {
+        id: "1",
+        nama: "JOKO SUSILO, S.Pd",
+        nik: "13.509",
+        jabatan: "Kepala Sekolah",
+        jenisIzin: "Dinas Luar",
+        tglMulai: "2026-08-01",
+        tglSelesai: "2026-08-03",
+        pengganti: "RUSMIATI, S.E",
+        status: "Disetujui"
+      },
+      {
+        id: "2",
+        nama: "RUSMIATI, S.E",
+        nik: "24.370",
+        jabatan: "Staf Administrasi",
+        jenisIzin: "Izin Keperluan Keluarga",
+        tglMulai: "2026-08-10",
+        tglSelesai: "2026-08-11",
+        pengganti: "Budi Santoso",
+        status: "Menunggu"
       }
+    ];
 
-      let cleanPhone = empData.phone.replace(/[^0-9]/g, '');
-      if (cleanPhone.startsWith('0')) {
-        cleanPhone = '62' + cleanPhone.slice(1);
-      }
-
-      const encodedText = encodeURIComponent(pesan);
-      const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
-
-      const win = window.open(waUrl, '_blank');
-      if (!win || win.closed || typeof win.closed === 'undefined') {
-        window.location.href = waUrl;
-      }
-    }
-
-    function getTodayString() {
-      const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function generateShortUrl(req) {
-      const baseUrl = window.location.origin + window.location.pathname;
-      const compactData = [req.id, req.nama, req.nik_karyawan, req.mapel, req.jenis, req.tglMulai, req.tglSelesai, req.pengganti, req.alasan];
-      const encoded = btoa(encodeURIComponent(JSON.stringify(compactData)));
-      return `${baseUrl}?p=${encoded}`;
-    }
-
-    // LOGIKA OTOMATIS: Sembunyikan Formulir Pengajuan Jika Dibuka Lewat Link WA (Approval Mode)
-    function handleUrlParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const payload = urlParams.get('p');
-      const isApprovalMode = urlParams.get('mode') === 'approval';
-
-      if (payload || isApprovalMode) {
-        // Sembunyikan panel formulir pengajuan
-        const formSec = document.getElementById('form-section');
-        if (formSec) formSec.classList.add('hidden');
-
-        // Ubah grid layout menjadi 1 kolom penuh untuk Dashboard Approval
-        const mainGrid = document.getElementById('main-grid');
-        if (mainGrid) {
-          mainGrid.classList.remove('xl:grid-cols-[.9fr_1.1fr]');
-          mainGrid.classList.add('grid-cols-1');
-        }
-      }
-
-      if (!payload) return;
-
-      try {
-        const arr = JSON.parse(decodeURIComponent(atob(payload)));
-        const decodedRequest = {
-          id: arr[0],
-          nama: arr[1],
-          nik_karyawan: arr[2],
-          mapel: arr[3],
-          jenis: arr[4],
-          tglMulai: arr[5],
-          tglSelesai: arr[6],
-          pengganti: arr[7],
-          alasan: arr[8],
-          approvalPengganti: 'Menunggu',
-          approvalKepsek: 'Menunggu',
-          statusFinal: 'Menunggu'
-        };
-        
-        let reqIndex = leaveRequests.findIndex(r => r.id === decodedRequest.id);
-        if (reqIndex === -1) {
-          leaveRequests.unshift(decodedRequest);
-        } else {
-          leaveRequests[reqIndex] = { ...decodedRequest, ...leaveRequests[reqIndex] };
-        }
-
-        saveData();
-      } catch (err) {
-        console.error("Gagal membaca data pengajuan dari URL:", err);
-      }
-    }
-
-    function initDropdowns() {
-      const selectGuru = document.getElementById('nama-guru');
-      const selectPengganti = document.getElementById('guru-pengganti');
-      const inputNik = document.getElementById('nik-karyawan');
-      const inputMapel = document.getElementById('mata-pelajaran');
-
-      Object.keys(employeeDatabase).forEach(nama => {
-        selectGuru.add(new Option(nama, nama));
-        selectPengganti.add(new Option(nama, nama));
-      });
-
-      selectGuru.addEventListener('change', (e) => {
-        const selectedName = e.target.value;
-        const data = employeeDatabase[selectedName];
-        if (data) {
-          inputNik.value = data.nik_karyawan || '-';
-          inputMapel.value = data.mapel || '-';
-        }
-      });
-    }
-
-    document.getElementById('leave-form').addEventListener('submit', (e) => {
+    // Form Submit Event Handler
+    document.getElementById('formIzin').addEventListener('submit', function(e) {
       e.preventDefault();
-
-      const newRequest = {
-        id: Date.now(),
-        nama: document.getElementById('nama-guru').value,
-        nik_karyawan: document.getElementById('nik-karyawan').value,
-        mapel: document.getElementById('mata-pelajaran').value,
-        jenis: document.getElementById('jenis-izin').value,
-        tglMulai: document.getElementById('tanggal-mulai').value,
-        tglSelesai: document.getElementById('tanggal-selesai').value,
-        pengganti: document.getElementById('guru-pengganti').value,
-        alasan: document.getElementById('alasan').value,
-        approvalPengganti: 'Menunggu',
-        approvalKepsek: 'Menunggu',
-        statusFinal: 'Menunggu'
+      
+      const newIzin = {
+        id: Date.now().toString(),
+        nama: document.getElementById('nama').value,
+        nik: document.getElementById('nik').value,
+        jabatan: document.getElementById('jabatan').value,
+        jenisIzin: document.getElementById('jenisIzin').value,
+        tglMulai: document.getElementById('tglMulai').value,
+        tglSelesai: document.getElementById('tglSelesai').value,
+        pengganti: document.getElementById('pengganti').value,
+        status: "Menunggu"
       };
 
-      leaveRequests.unshift(newRequest);
+      listPengajuan.push(newIzin);
       saveData();
-      renderCards();
-      applyFilter();
-
-      const shortLink = generateShortUrl(newRequest);
-
-      const pesanWA = `*PENGAJUAN IZIN BARU*\n` +
-        `*SMK Sumbermas Sarana*\n\n` +
-        `Yth. Bapak/Ibu *${newRequest.pengganti}*,\n` +
-        `Bapak/Ibu *${newRequest.nama}* mengajukan izin (${newRequest.jenis}) tgl *${newRequest.tglMulai}* s.d *${newRequest.tglSelesai}*.\n\n` +
-        `📲 *KLIK UNTUK PROSES APPROVAL:* \n${shortLink}\n\n` +
-        `*AKSI DI DASHBOARD:* \n✅ [ DISETUJUI ] / ❌ [ DITOLAK ]`;
-
-      sendWA(newRequest.pengganti, pesanWA);
-      document.getElementById('leave-form').reset();
+      renderTable();
+      this.reset();
+      alert('Pengajuan izin berhasil ditambahkan!');
     });
 
+    // Fitur Hapus Pengajuan
+    function hapusPengajuan(id) {
+      const target = listPengajuan.find(item => item.id === id);
+      if (confirm(`Apakah Anda yakin ingin menghapus pengajuan izin atas nama "${target.nama}"?`)) {
+        listPengajuan = listPengajuan.filter(item => item.id !== id);
+        saveData();
+        renderTable();
+      }
+    }
+
+    // Save to LocalStorage
     function saveData() {
-      localStorage.setItem('smk_izin_data', JSON.stringify(leaveRequests));
+      localStorage.setItem('data_izin_smk', JSON.stringify(listPengajuan));
     }
 
-    function updateApprovalPengganti(id) {
-      const req = leaveRequests.find(r => r.id === id);
-      if (!req) return;
-
-      const val = document.getElementById(`acc-pengganti-${id}`).value;
-      req.approvalPengganti = val;
-
-      if (val === 'Ditolak') {
-        req.statusFinal = 'Ditolak';
-        saveData();
-        renderCards();
-        applyFilter();
-        
-        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) ❌ *DITOLAK* oleh Guru Pengganti (*${req.pengganti}*).`;
-        sendWA(req.nama, pesan);
-
-      } else if (val === 'Disetujui') {
-        req.statusFinal = (req.approvalKepsek === 'Disetujui') ? 'Disetujui' : 'Menunggu';
-        saveData();
-        renderCards();
-        applyFilter();
-
-        const shortLink = generateShortUrl(req);
-
-        const pesanKepsek = `*PERMOHONAN APPROVAL IZIN (Kepsek)*\n\n` +
-          `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n` +
-          `Pengajuan izin *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
-          `📲 *KLIK UNTUK PROSES APPROVAL:* \n${shortLink}\n\n` +
-          `*AKSI DI DASHBOARD:* \n✅ [ DISETUJUI ] / ❌ [ DITOLAK ]`;
-
-        sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
-      } else {
-        req.statusFinal = 'Menunggu';
-        saveData();
-        renderCards();
-        applyFilter();
-      }
-    }
-
-    function updateApprovalKepsek(id) {
-      const req = leaveRequests.find(r => r.id === id);
-      if (!req) return;
-
-      const val = document.getElementById(`acc-kepsek-${id}`).value;
-      
-      if (val === 'Disetujui' && req.approvalPengganti !== 'Disetujui') {
-        alert("Perhatian: Guru Pengganti belum menyetujui pengajuan ini!");
-        document.getElementById(`acc-kepsek-${id}`).value = req.approvalKepsek;
-        return;
-      }
-
-      req.approvalKepsek = val;
-
-      if (val === 'Disetujui') {
-        req.statusFinal = 'Disetujui';
-        saveData();
-        renderCards();
-        applyFilter();
-
-        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI RESMI* oleh Kepala Sekolah.`;
-        sendWA(req.nama, pesan);
-
-      } else if (val === 'Ditolak') {
-        req.statusFinal = 'Ditolak';
-        saveData();
-        renderCards();
-        applyFilter();
-
-        const pesan = `*STATUS PENGAJUAN IZIN*\n\nYth. Bapak/Ibu *${req.nama}*,\n\nPengajuan izin Anda (${req.tglMulai} s.d ${req.tglSelesai}) ❌ *DITOLAK* oleh Kepala Sekolah.`;
-        sendWA(req.nama, pesan);
-
-      } else {
-        req.statusFinal = 'Menunggu';
-        saveData();
-        renderCards();
-        applyFilter();
-      }
-    }
-
-    function renderCards() {
-      const requestList = document.getElementById('request-list');
-      requestList.innerHTML = '';
-
-      const todayStr = getTodayString();
-      
-      const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-      document.getElementById('active-date-badge').textContent = new Date().toLocaleDateString('id-ID', optionsDate);
-
-      const activeRequests = leaveRequests.filter(req => {
-        const isWithinRange = (todayStr >= req.tglMulai && todayStr <= req.tglSelesai);
-
-        const reqDateCreated = new Date(req.id);
-        const createdYear = reqDateCreated.getFullYear();
-        const createdMonth = String(reqDateCreated.getMonth() + 1).padStart(2, '0');
-        const createdDay = String(reqDateCreated.getDate()).padStart(2, '0');
-        const createdStr = `${createdYear}-${createdMonth}-${createdDay}`;
-        const isCreatedToday = (createdStr === todayStr);
-
-        return isWithinRange || isCreatedToday;
-      });
-
-      if (activeRequests.length === 0) {
-        requestList.innerHTML = `
-          <div class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400">
-            <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
-            <p class="font-semibold text-slate-600">Tidak ada pengajuan izin aktif untuk hari ini.</p>
-            <p class="text-xs mt-1">Data izin lampau dan mendatang dapat dilihat di tabel Rekapitulasi bawah.</p>
-          </div>`;
-        lucide.createIcons();
-        return;
-      }
-
-      activeRequests.forEach(req => {
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4";
-        const badgeClass = req.statusFinal === 'Disetujui' ? 'status-disetujui' : (req.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu');
-
-        card.innerHTML = `
-          <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-            <div>
-              <h3 class="font-bold text-slate-800 text-base">${req.nama}</h3>
-              <p class="text-xs text-slate-500">NIK: ${req.nik_karyawan} · ${req.mapel}</p>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Jenis Izin:</span>
-              <span class="font-semibold text-slate-700">${req.jenis}</span>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl">
-              <span class="text-slate-500 block">Periode:</span>
-              <span class="font-semibold text-slate-700">${req.tglMulai} s.d ${req.tglSelesai}</span>
-            </div>
-          </div>
-
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
-            <span class="text-slate-500 block mb-0.5">Alasan Ketidakhadiran:</span>
-            <p class="font-medium text-slate-700 italic">"${req.alasan}"</p>
-          </div>
-
-          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-3 text-xs">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
-              <div>
-                <p class="font-bold text-slate-700">1. Persetujuan Pengganti</p>
-                <p class="text-[11px] text-slate-500">${req.pengganti}</p>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <select id="acc-pengganti-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
-                  <option value="Menunggu" ${req.approvalPengganti === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
-                  <option value="Disetujui" ${req.approvalPengganti === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
-                  <option value="Ditolak" ${req.approvalPengganti === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
-                </select>
-                <button onclick="updateApprovalPengganti(${req.id})" class="bg-[#123a5b] text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-[#1a4a73] transition">
-                  Simpan & WA Kepsek
-                </button>
-              </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
-              <div>
-                <p class="font-bold text-slate-700">2. Persetujuan Kepsek</p>
-                <p class="text-[11px] text-slate-500">JOKO SUSILO, S.Pd</p>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <select id="acc-kepsek-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
-                  <option value="Menunggu" ${req.approvalKepsek === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
-                  <option value="Disetujui" ${req.approvalKepsek === 'Disetujui' ? 'selected' : ''}>Disetujui</option>
-                  <option value="Ditolak" ${req.approvalKepsek === 'Ditolak' ? 'selected' : ''}>Ditolak</option>
-                </select>
-                <button onclick="updateApprovalKepsek(${req.id})" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-semibold hover:bg-emerald-700 transition">
-                  Simpan & WA Pemohon
-                </button>
-              </div>
-            </div>
-
-          </div>
-        `;
-
-        requestList.appendChild(card);
-      });
-      lucide.createIcons();
-    }
-
-    function applyFilter() {
-      const tglAwal = document.getElementById('filter-tgl-awal').value;
-      const tglAkhir = document.getElementById('filter-tgl-akhir').value;
-      const bulan = document.getElementById('filter-bulan').value;
-      const tahun = document.getElementById('filter-tahun').value;
-      const status = document.getElementById('filter-status').value;
-
-      currentFilteredData = leaveRequests.filter(req => {
-        if (!req.tglMulai) return false;
-
-        const dateParts = req.tglMulai.split('-');
-        const reqTahun = dateParts[0];
-        const reqBulan = dateParts[1];
-
-        let matchDateRange = true;
-        if (tglAwal && tglAkhir) {
-          matchDateRange = (req.tglMulai >= tglAwal && req.tglMulai <= tglAkhir) || 
-                           (req.tglSelesai >= tglAwal && req.tglSelesai <= tglAkhir);
-        } else if (tglAwal) {
-          matchDateRange = (req.tglMulai >= tglAwal);
-        } else if (tglAkhir) {
-          matchDateRange = (req.tglMulai <= tglAkhir);
-        }
-
-        const matchBulan = (bulan === 'all' || reqBulan === bulan);
-        const matchTahun = (tahun === 'all' || reqTahun === tahun);
-        const matchStatus = (status === 'all' || req.statusFinal === status);
-
-        return matchDateRange && matchBulan && matchTahun && matchStatus;
-      });
-
-      renderRekapTable();
-      updatePrintLabel();
-    }
-
-    function resetFilter() {
-      document.getElementById('filter-tgl-awal').value = '';
-      document.getElementById('filter-tgl-akhir').value = '';
-      document.getElementById('filter-bulan').value = 'all';
-      document.getElementById('filter-tahun').value = '2026';
-      document.getElementById('filter-status').value = 'all';
-      applyFilter();
-    }
-
-    function renderRekapTable() {
-      const tbody = document.getElementById('rekap-table-body');
+    // Render Table & Summary Cards
+    function renderTable() {
+      const tbody = document.getElementById('tabelIzinBody');
+      const filterStatus = document.getElementById('filterStatus').value;
       tbody.innerHTML = '';
 
-      document.getElementById('count-rekap').textContent = currentFilteredData.length;
-
-      if (currentFilteredData.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="9" class="p-6 text-center text-slate-400 italic">
-              Tidak ada data izin yang sesuai dengan filter periode terpilih.
-            </td>
-          </tr>`;
-        return;
-      }
-
-      currentFilteredData.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="p-3 text-center font-semibold text-slate-600">${index + 1}</td>
-          <td class="p-3 font-bold text-slate-800">${item.nama}</td>
-          <td class="p-3 text-slate-600">${item.nik_karyawan || '-'}</td>
-          <td class="p-3 text-slate-600">${item.mapel || '-'}</td>
-          <td class="p-3 font-semibold text-slate-700">${item.jenis}</td>
-          <td class="p-3 text-slate-600">${item.tglMulai}</td>
-          <td class="p-3 text-slate-600">${item.tglSelesai}</td>
-          <td class="p-3 text-slate-600">${item.pengganti}</td>
-          <td class="p-3 text-center">
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${item.statusFinal === 'Disetujui' ? 'status-disetujui' : (item.statusFinal === 'Ditolak' ? 'status-ditolak' : 'status-menunggu')}">
-              ${item.statusFinal}
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
+      let filteredData = listPengajuan.filter(item => {
+        return filterStatus === 'all' || item.status === filterStatus;
       });
-    }
 
-    function updatePrintLabel() {
-      const tglAwal = document.getElementById('filter-tgl-awal').value;
-      const tglAkhir = document.getElementById('filter-tgl-akhir').value;
-      const bulanText = document.getElementById('filter-bulan').options[document.getElementById('filter-bulan').selectedIndex].text;
-      const tahunText = document.getElementById('filter-tahun').value;
-
-      let label = "";
-      if (tglAwal && tglAkhir) {
-        label = `Tanggal ${tglAwal} s.d ${tglAkhir}`;
-      } else if (tglAwal) {
-        label = `Mulai Tanggal ${tglAwal}`;
-      } else if (tglAkhir) {
-        label = `Sampai Tanggal ${tglAkhir}`;
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Tidak ada data pengajuan izin ditemukan.</td></tr>`;
       } else {
-        label = `${bulanText} ${tahunText !== 'all' ? tahunText : ''}`;
+        filteredData.forEach((item, index) => {
+          let badgeClass = 'status-menunggu';
+          if (item.status === 'Disetujui') badgeClass = 'status-disetujui';
+          if (item.status === 'Ditolak') badgeClass = 'status-ditolak';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td><strong>${item.nama}</strong></td>
+            <td>${item.nik}</td>
+            <td>${item.jabatan}</td>
+            <td>${item.jenisIzin}</td>
+            <td>${item.tglMulai}</td>
+            <td>${item.tglSelesai}</td>
+            <td>${item.pengganti}</td>
+            <td><span class="status-badge ${badgeClass}">${item.status}</span></td>
+            <td>
+              <button class="btn btn-danger" onclick="hapusPengajuan('${item.id}')">
+                <i class="fa-solid fa-trash"></i> Hapus
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
       }
 
-      document.getElementById('print-periode-label').textContent = label;
+      // Update Summary Counter
+      document.getElementById('totalIzin').innerText = listPengajuan.length;
+      document.getElementById('totalDisetujui').innerText = listPengajuan.filter(x => x.status === 'Disetujui').length;
+      document.getElementById('totalMenunggu').innerText = listPengajuan.filter(x => x.status === 'Menunggu').length;
     }
 
-    function exportToCSV() {
-      if (currentFilteredData.length === 0) {
-        alert("Tidak ada data rekap untuk diunduh!");
-        return;
-      }
-
-      let csvContent = "\uFEFF";
-      csvContent += "No,Nama Guru/Karyawan,NIK Karyawan,Jabatan/Unit,Jenis Izin,Tanggal Mulai,Tanggal Selesai,Guru Pengganti,Alasan,Status Final\n";
-
-      currentFilteredData.forEach((item, idx) => {
-        const row = [
-          idx + 1,
-          `"${item.nama}"`,
-          `"${item.nik_karyawan || '-'}"`,
-          `"${item.mapel || '-'}"`,
-          `"${item.jenis}"`,
-          `"${item.tglMulai}"`,
-          `"${item.tglSelesai}"`,
-          `"${item.pengganti}"`,
-          `"${item.alasan.replace(/"/g, '""')}"`,
-          `"${item.statusFinal}"`
-        ];
-        csvContent += row.join(",") + "\n";
-      });
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `Rekap_Izin_SMK_Sumbermas_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      initDropdowns();
-      handleUrlParams();
-      renderCards();
-      applyFilter();
-
-      const today = new Date();
-      document.getElementById('current-print-date').textContent = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    });
+    // Initial Render on Page Load
+    renderTable();
   </script>
 </body>
 </html>
