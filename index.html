@@ -252,6 +252,7 @@
               <th class="p-3 font-semibold">Tanggal Selesai</th>
               <th class="p-3 font-semibold">Pengganti</th>
               <th class="p-3 font-semibold text-center">Status Final</th>
+              <th class="p-3 font-semibold text-center no-print w-16">Aksi</th>
             </tr>
           </thead>
           <tbody id="rekap-table-body" class="divide-y divide-slate-200"></tbody>
@@ -350,18 +351,15 @@
       return `${baseUrl}?p=${encoded}`;
     }
 
-    // LOGIKA OTOMATIS: Sembunyikan Formulir Pengajuan Jika Dibuka Lewat Link WA (Approval Mode)
     function handleUrlParams() {
       const urlParams = new URLSearchParams(window.location.search);
       const payload = urlParams.get('p');
       const isApprovalMode = urlParams.get('mode') === 'approval';
 
       if (payload || isApprovalMode) {
-        // Sembunyikan panel formulir pengajuan
         const formSec = document.getElementById('form-section');
         if (formSec) formSec.classList.add('hidden');
 
-        // Ubah grid layout menjadi 1 kolom penuh untuk Dashboard Approval
         const mainGrid = document.getElementById('main-grid');
         if (mainGrid) {
           mainGrid.classList.remove('xl:grid-cols-[.9fr_1.1fr]');
@@ -460,6 +458,19 @@
 
     function saveData() {
       localStorage.setItem('smk_izin_data', JSON.stringify(leaveRequests));
+    }
+
+    // FUNGSI HAPUS PENGAJUAN IZIN
+    function deleteRequest(id) {
+      const targetReq = leaveRequests.find(r => r.id === id);
+      const namaPemohon = targetReq ? targetReq.nama : "pengajuan ini";
+
+      if (confirm(`Apakah Anda yakin ingin menghapus data pengajuan izin dari "${namaPemohon}"? Data yang dihapus tidak dapat dikembalikan.`)) {
+        leaveRequests = leaveRequests.filter(req => req.id !== id);
+        saveData();
+        renderCards();
+        applyFilter();
+      }
     }
 
     function updateApprovalPengganti(id) {
@@ -585,7 +596,12 @@
               <h3 class="font-bold text-slate-800 text-base">${req.nama}</h3>
               <p class="text-xs text-slate-500">NIK: ${req.nik_karyawan} · ${req.mapel}</p>
             </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${req.statusFinal}</span>
+              <button onclick="deleteRequest(${req.id})" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition" title="Hapus Pengajuan">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3 text-xs">
@@ -701,7 +717,7 @@
       if (currentFilteredData.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="p-6 text-center text-slate-400 italic">
+            <td colspan="10" class="p-6 text-center text-slate-400 italic">
               Tidak ada data izin yang sesuai dengan filter periode terpilih.
             </td>
           </tr>`;
@@ -725,9 +741,15 @@
               ${item.statusFinal}
             </span>
           </td>
+          <td class="p-3 text-center no-print">
+            <button onclick="deleteRequest(${item.id})" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition" title="Hapus Data">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
+      lucide.createIcons();
     }
 
     function updatePrintLabel() {
