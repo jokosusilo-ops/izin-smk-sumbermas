@@ -817,5 +817,91 @@
       document.getElementById('current-print-date').textContent = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     });
   </script>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Approval Izin SMK SS</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; }
+    .Disetujui { background-color: #28a745; }
+    .Menunggu { background-color: #ffc107; color: #000; }
+    .Ditolak { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+
+  <h2>Dashboard Approval Izin Realtime</h2>
+  <p id="waktu-update">Status: Memuat data...</p>
+
+  <table id="tabelIzin">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama Guru/Karyawan</th>
+        <th>NIK</th>
+        <th>Jabatan</th>
+        <th>Jenis Izin</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data otomatis diisi oleh script -->
+    </tbody>
+  </table>
+
+  <!-- SCRIPT UNTUK REALTIME DATA -->
+  <script>
+    // Ganti URL di bawah dengan URL Google Apps Script kamu
+    const API_URL = "https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXX/exec";
+
+    async function muatDataRealtime() {
+      try {
+        // Ambil data + cegah cache browser dengan timestamp
+        const response = await fetch(`${API_URL}?t=${Date.now()}`);
+        const data = await response.json();
+        
+        const tbody = document.querySelector("#tabelIzin tbody");
+        tbody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Belum ada data izin.</td></tr>";
+          return;
+        }
+
+        // Tampilkan baris data
+        data.forEach((item, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td><strong>${item.nama || '-'}</strong></td>
+            <td>${item.nik || '-'}</td>
+            <td>${item.jabatan || '-'}</td>
+            <td>${item.jenisIzin || '-'}</td>
+            <td><span class="badge ${item.status}">${item.status || 'Menunggu'}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("waktu-update").innerText = `Terakhir diperbarui: ${new Date().toLocaleTimeString('id-ID')}`;
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+        document.getElementById("waktu-update").innerText = "Gagal terhubung ke database.";
+      }
+    }
+
+    // Panggil saat pertama kali halaman dibuka
+    muatDataRealtime();
+
+    // Auto-update otomatis setiap 5 detik
+    setInterval(muatDataRealtime, 5000);
+  </script>
+</body>
+</html>
 </body>
 </html>
