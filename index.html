@@ -265,7 +265,7 @@
             <p class="text-xs">Mengetahui,</p>
             <p class="text-sm font-bold mt-1">Kepala Sekolah</p>
             <div class="h-16"></div>
-            <p class="text-sm font-bold underline">JOKO SUSILO, S.Pd</p>
+            <p class="text-sm font-bold underline">TITIN PUSPITA SARI HUTAPEA, S.Pd</p>
             <p class="text-xs">NIK Karyawan: 13.509</p>
           </div>
           <div>
@@ -283,8 +283,7 @@
 
   <script>
     const employeeDatabase = {
-      "JOKO SUSILO, S.Pd": { phone: "6285230950381", nik_karyawan: "13.509", mapel: "Kepala Sekolah" },
-      "TITIN PUSPITA SARI HUTAPEA,S.Pd": { phone: "6282155138864", nik_karyawan: "18.015", mapel: "Guru" },
+      "TITIN PUSPITA SARI HUTAPEA,S.Pd": { phone: "6282155138864", nik_karyawan: "18.015", mapel: "Kepala Sekolah" },
       "YANTI NURLIYANI, S.Pd": { phone: "6285654271885", nik_karyawan: "12.506", mapel: "Guru" },
       "GUSTAF PRIYADI, S.Pd": { phone: "6281257615088", nik_karyawan: "13.518", mapel: "Guru" },
       "RATIH PONIASARI, S.Pd": { phone: "6285787701561", nik_karyawan: "17.035", mapel: "Guru" },
@@ -498,12 +497,12 @@
         const shortLink = generateShortUrl(req);
 
         const pesanKepsek = `*PERMOHONAN APPROVAL IZIN (Kepsek)*\n\n` +
-          `Yth. Bapak Kepala Sekolah (*JOKO SUSILO, S.Pd*),\n` +
+          `Yth. Bapak Kepala Sekolah (*TITIN PUSPITA SARI HUTAPEA, S.Pd*),\n` +
           `Pengajuan izin *${req.nama}* (${req.tglMulai} s.d ${req.tglSelesai}) telah ✅ *DISETUJUI* oleh Guru Pengganti (*${req.pengganti}*).\n\n` +
           `📲 *KLIK UNTUK PROSES APPROVAL:* \n${shortLink}\n\n` +
           `*AKSI DI DASHBOARD:* \n✅ [ DISETUJUI ] / ❌ [ DITOLAK ]`;
 
-        sendWA("JOKO SUSILO, S.Pd", pesanKepsek);
+        sendWA("TITIN PUSPITA SARI HUTAPEA, S.Pd", pesanKepsek);
       } else {
         req.statusFinal = 'Menunggu';
         saveData();
@@ -642,7 +641,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
               <div>
                 <p class="font-bold text-slate-700">2. Persetujuan Kepsek</p>
-                <p class="text-[11px] text-slate-500">JOKO SUSILO, S.Pd</p>
+                <p class="text-[11px] text-slate-500">TITIN PUSPITA SARI HUTAPEA, S.Pd</p>
               </div>
               <div class="flex items-center gap-1.5">
                 <select id="acc-kepsek-${req.id}" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold">
